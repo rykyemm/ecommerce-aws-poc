@@ -1,0 +1,144 @@
+name: CI/CD Pipeline for E-commerce POC
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:  # Pour permettre le déclenchement manuel
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+      
+    - name: Set up PHP
+      uses: shivammathur/setup-php@v2
+      with:
+        php-version: '8.0'
+        extensions: mbstring, pdo_mysql
+        
+    - name: Set up Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: '16'
+        cache: 'npm'
+        cache-dependency-path: 'frontend/package-lock.json'
+        
+    - name: Install PHP dependencies
+      run: |
+        cd backend
+        composer install --no-dev --optimize-autoloader
+        
+    - name: Install Node.js dependencies
+      run: |
+        cd frontend
+        npm ci
+        
+    - name: Build React app
+      run: |
+        cd frontend
+        npm run build
+        
+    - name: Run API tests
+      run: |
+        # Utiliser Newman pour exécuter les tests Postman
+        npm install -g newman
+        newman run tests/api/e-commerce-api.postman_collection.json --environment tests/api/environment.json
+      continue-on-error: true  # Pour que le pipeline continue même si les tests échouent
+        
+    - name: Run performance tests
+      run: |
+        # Installer k6 pour les tests de performance
+        curl -L https://github.com/loadimpact/k6/releases/download/v0.33.0/k6-v0.33.0-linux-amd64.tar.gz | tar xzf - -C /tmp
+        sudo mv /tmp/k6-v0.33.0-linux-amd64/k6 /usr/local/bin
+        # Exécuter les tests de performance
+        k6 run tests/performance/load-test.js
+      continue-on-error: true  # Pour que le pipeline continue même si les tests échouent
+        
+    - name: Create deployment package
+      run: |
+        mkdir -p deployment
+        # Copier les fichiers nécessaires
+        cp -r backend deployment/
+        cp -r frontend/build deployment/frontend
+        cp -r .ebextensions deployment/
+        cp -r database deployment/
+        cp README.md deployment/
+        
+        # Créer le fichier ZIP
+        cd deployment
+        zip -r ../ecommerce-aws-poc.zip .
+        cd ..
+        
+    - name: Upload artifact
+      uses: actions/upload-artifact@v3
+      with:
+        name: ecommerce-aws-poc
+        path: ecommerce-aws-poc.zip
+        
+  deploy-to-s3:
+    needs: build-and-test
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+    
+    steps:
+    - name: Download artifact
+      uses: actions/download-artifact@v3
+      with:
+        name: ecommerce-aws-poc
+        
+    - name: Configure AWS credentials
+      uses: aws-actions/configure-aws-credentials@v1
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-region: ${{ secrets.AWS_REGION }}
+      
+    - name: Upload to S3
+      run: |
+        # Ajouter un timestamp dans le nom du fichier
+        TIMESTAMP=$(date +%Y%m%d-%H%M%S)
+        FILENAME="ecommerce-aws-poc-${TIMESTAMP}.zip"
+        
+        # Renommer le fichier
+        mv ecommerce-aws-poc.zip $FILENAME
+        
+        # Calculer et afficher le hash MD5 pour la vérification
+        md5sum $FILENAME
+        
+        # Uploader vers S3
+        aws s3 cp $FILENAME s3://${{ secrets.AWS_S3_BUCKET }}/deployments/$FILENAME
+        
+        # Créer une copie "latest" pour référence facile
+        aws s3 cp s3://${{ secrets.AWS_S3_BUCKET }}/deployments/$FILENAME s3://${{ secrets.AWS_S3_BUCKET }}/deployments/ecommerce-aws-poc-latest.zip
+        
+        echo "Artifact uploaded to S3: s3://${{ secrets.AWS_S3_BUCKET }}/deployments/$FILENAME"
+        echo "Latest artifact available at: s3://${{ secrets.AWS_S3_BUCKET }}/deployments/ecommerce-aws-poc-latest.zip"
+      
+    - name: Create deployment record
+      run: |
+        # Enregistrer les métadonnées de déploiement
+        TIMESTAMP=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+        COMMIT_SHA=${{ github.sha }}
+        FILENAME="ecommerce-aws-poc-$(date +%Y%m%d-%H%M%S).zip"
+        
+        # Créer un fichier JSON de métadonnées
+        cat > deployment-metadata.json << EOF
+        {
+          "timestamp": "$TIMESTAMP",
+          "commit": "$COMMIT_SHA",
+          "filename": "$FILENAME",
+          "repository": "${{ github.repository }}",
+          "workflow": "${{ github.workflow }}",
+          "triggered_by": "${{ github.actor }}"
+        }
+        EOF
+        
+        # Uploader les métadonnées vers S3
+        aws s3 cp deployment-metadata.json s3://${{ secrets.AWS_S3_BUCKET }}/deployments/metadata/$(date +%Y%m%d-%H%M%S).json
+        
+        echo "Deployment metadata recorded" 

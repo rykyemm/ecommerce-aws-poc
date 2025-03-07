@@ -1,0 +1,158 @@
+name: CI Pipeline ecommerce-aws-poc
+
+on:
+  push:
+    branches:
+      - main
+      - develop
+  pull_request:
+    branches:
+      - main
+      - develop
+
+jobs:
+  frontend:
+    name: Build & Test Frontend
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: breizhsport-front
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+          cache: 'npm'
+          cache-dependency-path: breizhsport-front/package-lock.json
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Linting - ESLint
+        run: npm run lint
+
+      - name: Run unit tests - Jest
+        run: npm test
+
+      - name : Build app
+        run: npm run build
+
+      - name: Run test app
+        run: npm run start &
+
+      - name: Wait for server to be ready
+        run: sleep 5
+
+      - name: Run e2e tests - Selenium
+        run: npm run test:selenium
+
+  backend:
+    name: Build & Test Backend
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: breizhsport-back
+    needs: frontend
+    services:
+      mysql:
+        image: mysql:8
+        env:
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_DATABASE: testing
+          MYSQL_USER: user
+          MYSQL_PASSWORD: password
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping --host=localhost --user=root --password=root"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=3
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: 8.2
+          extensions: mbstring, pdo, pdo_mysql
+          tools: composer
+
+      - name: Install dependencies
+        run: composer install --no-progress --no-suggest --prefer-dist
+
+      - name: Set up environment file
+        run: cp .env.example .env
+
+      - name: Generate application key
+        run: php artisan key:generate
+
+      - name: Run migrations
+        run: php artisan migrate --force
+
+      - name: Run tests
+        run: php artisan test
+
+  deploy:
+    needs: backend
+    name: Deploy on AWS
+    runs-on: ubuntu-latest
+    steps: 
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install zip
+        run: sudo apt-get update && sudo apt-get install -y zip
+
+      - name: Create deployment package
+        run: zip -r breizhsport.zip breizhsport-front breizhsport-back -x "breizhsport-front/node_modules/*" "breizhsport-back/vendor/*" ".git/*"
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: eu-west-3
+
+      - name: Upload ZIP to S3
+        run: aws s3 cp breizhsport.zip s3://poccesibucket/
+
+      - name: Deploying on AWS
+        run: echo "Deploying on AWS"
+
+#  postman-tests:
+#    runs-on: ubuntu-latest
+
+#    steps:
+#    - name: Checkout code
+#      uses: actions/checkout@v3
+
+#    - name: Install Node.js
+#      uses: actions/setup-node@v3
+#      with:
+#        node-version: '16'
+
+#    - name: Install Newman
+#      run: npm install -g newman
+
+#    - name: Run Postman Collection
+#      run: newman run collection.json
+
+#  performance_tests:
+#    name: Run Performance Tests
+#    runs-on: ubuntu-latest
+#    steps:
+#      - name: Checkout repository
+#        uses: actions/checkout@v4
+#      - name: Setup JMeter
+#        run: |
+#          sudo apt-get update
+#          sudo apt-get install -y jmeter
+#      - name: Run JMeter Tests
+#        run: jmeter -n -t performance_tests/performance_tests.jmx -l performance_tests/results.jtl
+#      - name: View Test Results
+#        run: cat performance_tests/results.jtl
