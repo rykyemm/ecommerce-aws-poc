@@ -41,7 +41,7 @@ jobs:
         npm test -- --coverage --watchAll=false
         
     - name: Upload Jest coverage
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: frontend-coverage
         path: frontend/coverage
@@ -52,7 +52,7 @@ jobs:
         npm run build
         
     - name: Upload frontend build
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: frontend-build
         path: frontend/build
@@ -101,7 +101,7 @@ jobs:
         php database/import.php schema.sql
         
     - name: Upload backend files
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: backend-files
         path: backend
@@ -149,7 +149,7 @@ jobs:
       run: cat performance_tests/results.jtl
       
     - name: Archive performance test results
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: performance-test-results
         path: performance_tests/results.jtl
@@ -164,13 +164,13 @@ jobs:
       uses: actions/checkout@v4
       
     - name: Download frontend build
-      uses: actions/download-artifact@v3
+      uses: actions/download-artifact@v4
       with:
         name: frontend-build
         path: deployment/frontend
         
     - name: Download backend files
-      uses: actions/download-artifact@v3
+      uses: actions/download-artifact@v4
       with:
         name: backend-files
         path: deployment/backend
@@ -189,7 +189,7 @@ jobs:
         cd ..
         
     - name: Upload deployment package
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: ecommerce-aws-poc
         path: ecommerce-aws-poc.zip
@@ -202,7 +202,7 @@ jobs:
     
     steps:
     - name: Download artifact
-      uses: actions/download-artifact@v3
+      uses: actions/download-artifact@v4
       with:
         name: ecommerce-aws-poc
         
@@ -339,7 +339,7 @@ jobs:
 
     - name: Upload Selenium logs
       if: always()
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: selenium-logs
         path: |
