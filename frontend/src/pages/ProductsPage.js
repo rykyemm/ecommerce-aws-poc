@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { Container, Form, InputGroup, Button, Row, Col } from 'react-bootstrap';
-import { FaSearch } from 'react-icons/fa';
 import api from '../services/api';
 import ProductList from '../components/ProductList';
 
@@ -63,7 +62,7 @@ const ProductsPage = () => {
                 onChange={(e) => setSearchQuery(e.target.value)}
               />
               <Button type="submit" variant="primary">
-                <FaSearch />
+                Rechercher
               </Button>
             </InputGroup>
           </Form>

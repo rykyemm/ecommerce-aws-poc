@@ -24,8 +24,20 @@ export const AuthProvider = ({ children }) => {
   const fetchUserProfile = async () => {
     try {
       setLoading(true);
-      const response = await api.getUserProfile();
-      setCurrentUser(response.data);
+      // Pour cette POC, nous simulons un profil utilisateur
+      const mockUser = {
+        id: 1,
+        email: 'user@example.com',
+        first_name: 'John',
+        last_name: 'Doe',
+        role: 'customer'
+      };
+      
+      // Normalement, vous feriez ceci :
+      // const response = await api.getUserProfile();
+      // setCurrentUser(response.data);
+      
+      setCurrentUser(mockUser);
       setError(null);
     } catch (err) {
       console.error('Error fetching user profile:', err);
@@ -40,8 +52,24 @@ export const AuthProvider = ({ children }) => {
   const login = async (email, password) => {
     try {
       setLoading(true);
-      const response = await api.login({ email, password });
-      const { token, user } = response.data;
+      
+      // Pour cette POC, nous simulons une réponse de connexion
+      const mockResponse = {
+        token: 'fake-jwt-token',
+        user: {
+          id: 1,
+          email: email,
+          first_name: 'John',
+          last_name: 'Doe',
+          role: 'customer'
+        }
+      };
+      
+      // Normalement, vous feriez ceci :
+      // const response = await api.login({ email, password });
+      // const { token, user } = response.data;
+      
+      const { token, user } = mockResponse;
       
       localStorage.setItem('token', token);
       setCurrentUser(user);
@@ -61,8 +89,24 @@ export const AuthProvider = ({ children }) => {
   const register = async (userData) => {
     try {
       setLoading(true);
-      const response = await api.register(userData);
-      const { token, user } = response.data;
+      
+      // Pour cette POC, nous simulons une réponse d'inscription
+      const mockResponse = {
+        token: 'fake-jwt-token',
+        user: {
+          id: 2,
+          email: userData.email,
+          first_name: userData.firstName,
+          last_name: userData.lastName,
+          role: 'customer'
+        }
+      };
+      
+      // Normalement, vous feriez ceci :
+      // const response = await api.register(userData);
+      // const { token, user } = response.data;
+      
+      const { token, user } = mockResponse;
       
       localStorage.setItem('token', token);
       setCurrentUser(user);

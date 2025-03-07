@@ -1,7 +1,6 @@
 import React from 'react';
 import { Container, Table, Button, Image, Form, Row, Col, Alert } from 'react-bootstrap';
 import { Link } from 'react-router-dom';
-import { FaTrash, FaArrowLeft, FaShoppingCart } from 'react-icons/fa';
 import { useCart } from '../context/CartContext';
 
 const CartPage = () => {
@@ -13,7 +12,6 @@ const CartPage = () => {
         <h1 className="page-title">Panier</h1>
         <Alert variant="info">
           <div className="text-center">
-            <FaShoppingCart size={50} className="mb-3" />
             <h4>Votre panier est vide</h4>
             <p>Ajoutez des produits à votre panier pour les voir ici.</p>
             <Link to="/products">
@@ -75,7 +73,7 @@ const CartPage = () => {
                   size="sm" 
                   onClick={() => removeFromCart(item.id)}
                 >
-                  <FaTrash />
+                  Supprimer
                 </Button>
               </td>
             </tr>
@@ -88,7 +86,6 @@ const CartPage = () => {
           <div className="d-flex">
             <Link to="/products" className="me-3">
               <Button variant="outline-secondary">
-                <FaArrowLeft className="me-2" />
                 Continuer mes achats
               </Button>
             </Link>

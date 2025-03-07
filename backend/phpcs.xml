@@ -1,0 +1,30 @@
+<?xml version="1.0"?>
+<ruleset name="E-commerce API Standard">
+    <description>PSR12 coding standard for E-commerce API</description>
+
+    <!-- Display Progress -->
+    <arg value="p"/>
+    <!-- Use colors -->
+    <arg name="colors"/>
+    <!-- Show sniff codes -->
+    <arg value="s"/>
+
+    <!-- Use PSR12 -->
+    <rule ref="PSR12"/>
+
+    <!-- Paths to check -->
+    <file>src</file>
+    <file>tests</file>
+
+    <!-- Exclude vendor directory -->
+    <exclude-pattern>*/vendor/*</exclude-pattern>
+    <exclude-pattern>*/cache/*</exclude-pattern>
+
+    <!-- Line length -->
+    <rule ref="Generic.Files.LineLength">
+        <properties>
+            <property name="lineLimit" value="120"/>
+            <property name="absoluteLineLimit" value="120"/>
+        </properties>
+    </rule>
+</ruleset> 
