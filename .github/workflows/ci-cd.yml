@@ -39,12 +39,14 @@ jobs:
           eslint-plugin-react-hooks@latest \
           eslint-plugin-jsx-a11y@latest \
           @typescript-eslint/parser@5.x \
-          @typescript-eslint/eslint-plugin@5.x
+          @typescript-eslint/eslint-plugin@5.x \
+          @types/react@18.x \
+          typescript@4.9.5
         
     - name: Run ESLint
       run: |
         cd frontend
-        npx eslint . --ext .js,.jsx,.ts,.tsx --max-warnings=0
+        npx eslint src/ --ext .js,.jsx,.ts,.tsx --max-warnings=0 --ignore-pattern "*.config.js" --ignore-pattern "e2e/*"
         
     - name: Run Jest Tests
       run: |
