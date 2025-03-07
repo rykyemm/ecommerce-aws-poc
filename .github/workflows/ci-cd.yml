@@ -8,30 +8,20 @@ on:
   workflow_dispatch:  # Pour permettre le déclenchement manuel
 
 jobs:
-  build-and-test:
+  frontend:
+    name: Build & Test Frontend
     runs-on: ubuntu-latest
     
     steps:
     - name: Checkout code
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
       
-    - name: Set up PHP
-      uses: shivammathur/setup-php@v2
-      with:
-        php-version: '8.0'
-        extensions: mbstring, pdo_mysql
-        
     - name: Set up Node.js
-      uses: actions/setup-node@v3
+      uses: actions/setup-node@v4
       with:
-        node-version: '16'
+        node-version: '18'
         cache: 'npm'
         cache-dependency-path: 'frontend/package-lock.json'
-        
-    - name: Install PHP dependencies
-      run: |
-        cd backend
-        composer install --no-dev --optimize-autoloader
         
     - name: Install Node.js dependencies
       run: |
@@ -43,45 +33,152 @@ jobs:
         cd frontend
         npm run build
         
-    - name: Run API tests
-      run: |
-        # Utiliser Newman pour exécuter les tests Postman
-        npm install -g newman
-        newman run tests/api/e-commerce-api.postman_collection.json --environment tests/api/environment.json
-      continue-on-error: true  # Pour que le pipeline continue même si les tests échouent
+    - name: Upload frontend build
+      uses: actions/upload-artifact@v3
+      with:
+        name: frontend-build
+        path: frontend/build
+
+  backend:
+    name: Build & Test Backend
+    runs-on: ubuntu-latest
+    needs: frontend
+    
+    services:
+      mysql:
+        image: mysql:8
+        env:
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_DATABASE: ecommerce
+          MYSQL_USER: user
+          MYSQL_PASSWORD: password
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping --host=localhost --user=root --password=root"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=3
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Set up PHP
+      uses: shivammathur/setup-php@v2
+      with:
+        php-version: '8.0'
+        extensions: mbstring, pdo_mysql
+        tools: composer
         
-    - name: Run performance tests
+    - name: Install PHP dependencies
       run: |
-        # Installer k6 pour les tests de performance
-        curl -L https://github.com/loadimpact/k6/releases/download/v0.33.0/k6-v0.33.0-linux-amd64.tar.gz | tar xzf - -C /tmp
-        sudo mv /tmp/k6-v0.33.0-linux-amd64/k6 /usr/local/bin
-        # Exécuter les tests de performance
-        k6 run tests/performance/load-test.js
-      continue-on-error: true  # Pour que le pipeline continue même si les tests échouent
+        cd backend
+        composer install --no-dev --optimize-autoloader
         
-    - name: Create deployment package
+    - name: Run database migrations
+      run: |
+        # Supposons que vous avez un script pour exécuter vos migrations
+        cd backend
+        php database/import.php schema.sql
+        
+    - name: Upload backend files
+      uses: actions/upload-artifact@v3
+      with:
+        name: backend-files
+        path: backend
+
+  api-tests:
+    name: Run API Tests
+    runs-on: ubuntu-latest
+    needs: backend
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Install Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        
+    - name: Install Newman
+      run: npm install -g newman
+      
+    - name: Run API Tests
+      run: newman run tests/api/e-commerce-api.postman_collection.json --environment tests/api/environment.json
+      continue-on-error: true  # Pour que le pipeline continue même si les tests échouent
+
+  performance-tests:
+    name: Run Performance Tests
+    runs-on: ubuntu-latest
+    needs: api-tests
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      
+    - name: Setup JMeter
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y jmeter
+        
+    - name: Run JMeter Tests
+      run: jmeter -n -t performance_tests/performance_tests.jmx -l performance_tests/results.jtl
+      continue-on-error: true  # Pour que le pipeline continue même si les tests échouent
+      
+    - name: View Test Results
+      run: cat performance_tests/results.jtl
+      
+    - name: Archive performance test results
+      uses: actions/upload-artifact@v3
+      with:
+        name: performance-test-results
+        path: performance_tests/results.jtl
+
+  package:
+    name: Create Deployment Package
+    runs-on: ubuntu-latest
+    needs: [frontend, backend, performance-tests]
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Download frontend build
+      uses: actions/download-artifact@v3
+      with:
+        name: frontend-build
+        path: deployment/frontend
+        
+    - name: Download backend files
+      uses: actions/download-artifact@v3
+      with:
+        name: backend-files
+        path: deployment/backend
+        
+    - name: Copy configuration files
       run: |
         mkdir -p deployment
-        # Copier les fichiers nécessaires
-        cp -r backend deployment/
-        cp -r frontend/build deployment/frontend
         cp -r .ebextensions deployment/
         cp -r database deployment/
         cp README.md deployment/
         
-        # Créer le fichier ZIP
+    - name: Create ZIP file
+      run: |
         cd deployment
         zip -r ../ecommerce-aws-poc.zip .
         cd ..
         
-    - name: Upload artifact
+    - name: Upload deployment package
       uses: actions/upload-artifact@v3
       with:
         name: ecommerce-aws-poc
         path: ecommerce-aws-poc.zip
-        
+
   deploy-to-s3:
-    needs: build-and-test
+    name: Deploy to AWS S3
+    needs: package
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
     
@@ -92,7 +189,7 @@ jobs:
         name: ecommerce-aws-poc
         
     - name: Configure AWS credentials
-      uses: aws-actions/configure-aws-credentials@v1
+      uses: aws-actions/configure-aws-credentials@v2
       with:
         aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
         aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
