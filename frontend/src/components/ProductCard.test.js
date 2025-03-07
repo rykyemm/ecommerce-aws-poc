@@ -1,6 +1,7 @@
 import React from 'react';
-import { render, screen } from '@testing-library/react';
+import { render, screen, fireEvent } from '@testing-library/react';
 import ProductCard from './ProductCard';
+import { TestWrapper } from '../test-utils/test-wrapper';
 
 const mockProduct = {
   id: 1,
@@ -14,11 +15,27 @@ const mockProduct = {
 
 describe('ProductCard', () => {
   test('renders product information correctly', () => {
-    render(<ProductCard product={mockProduct} />);
+    render(
+      <TestWrapper>
+        <ProductCard product={mockProduct} />
+      </TestWrapper>
+    );
     
     expect(screen.getByText(mockProduct.name)).toBeInTheDocument();
     expect(screen.getByText(mockProduct.category_name)).toBeInTheDocument();
     expect(screen.getByText(mockProduct.description)).toBeInTheDocument();
     expect(screen.getByText(`${mockProduct.price.toFixed(2)} €`)).toBeInTheDocument();
+  });
+
+  test('handles add to cart click', () => {
+    render(
+      <TestWrapper>
+        <ProductCard product={mockProduct} />
+      </TestWrapper>
+    );
+    
+    const addToCartButton = screen.getByText('Ajouter au panier');
+    fireEvent.click(addToCartButton);
+    // Le test passe si le bouton existe et peut être cliqué sans erreur
   });
 }); 
