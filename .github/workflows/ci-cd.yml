@@ -51,8 +51,8 @@ jobs:
     - name: Run Jest Tests
       run: |
         cd frontend
-        npm install --save-dev jest @testing-library/react @testing-library/jest-dom @testing-library/user-event jest-environment-jsdom
-        npm test -- --coverage --watchAll=false
+        npm install --save-dev jest @testing-library/react @testing-library/jest-dom @testing-library/user-event jest-environment-jsdom identity-obj-proxy
+        npm run test:coverage
         
     - name: Upload Jest coverage
       uses: actions/upload-artifact@v4
