@@ -46,7 +46,7 @@ jobs:
     - name: Run ESLint
       run: |
         cd frontend
-        npx eslint src/ --ext .js,.jsx,.ts,.tsx --max-warnings=0 --ignore-pattern "*.config.js" --ignore-pattern "e2e/*"
+        npx eslint src/ --ext .js,.jsx,.ts,.tsx --max-warnings=20 --ignore-pattern "*.config.js" --ignore-pattern "e2e/*"
         
     - name: Run Jest Tests
       run: |

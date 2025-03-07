@@ -22,9 +22,14 @@ module.exports = {
   rules: {
     'react/prop-types': 'off', // Désactiver prop-types car nous utilisons TypeScript
     'react/react-in-jsx-scope': 'off', // React 17+ n'a pas besoin d'importer React
-    'no-unused-vars': 'warn', // Avertissement au lieu d'erreur pour les variables non utilisées
+    'no-unused-vars': 'off', // Désactivé en faveur de la règle TypeScript
     'react/no-unescaped-entities': 'off', // Permettre les apostrophes non échappées
-    '@typescript-eslint/no-unused-vars': ['warn', { argsIgnorePattern: '^_' }],
+    '@typescript-eslint/no-unused-vars': ['warn', {
+      argsIgnorePattern: '^_',
+      varsIgnorePattern: '^_',
+      caughtErrorsIgnorePattern: '^_',
+      destructuredArrayIgnorePattern: '^_'
+    }],
     'no-undef': 'off', // TypeScript gère déjà cela
   },
   settings: {
@@ -32,5 +37,5 @@ module.exports = {
       version: 'detect',
     },
   },
-  ignorePatterns: ['build/', 'node_modules/', '*.config.js'],
+  ignorePatterns: ['build/', 'node_modules/', '*.config.js', 'e2e/'],
 }; 
