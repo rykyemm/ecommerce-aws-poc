@@ -45,12 +45,8 @@ const RegisterPage = () => {
       setError('');
       setLoading(true);
       
-      // Pour cette POC, nous simulons l'inscription
-      // Normalement, vous utiliseriez : await register(formData);
-      setTimeout(() => {
-        console.log('Inscription simulée avec:', formData.email);
-        navigate('/');
-      }, 1000);
+      await register(formData);
+      navigate('/');
       
     } catch (err) {
       setError("Échec de l'inscription. Veuillez réessayer.");

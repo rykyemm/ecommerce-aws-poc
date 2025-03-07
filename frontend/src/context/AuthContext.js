@@ -49,7 +49,7 @@ export const AuthProvider = ({ children }) => {
   };
   
   // Connexion
-  const login = async (email, password) => {
+  const login = async (email, _password) => {
     try {
       setLoading(true);
       

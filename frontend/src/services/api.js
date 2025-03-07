@@ -94,15 +94,15 @@ const mockAPI = {
     );
     return { data: { records: filtered } };
   },
-  createProduct: async (data) => {
+  createProduct: async (_data) => {
     await simulateDelay();
     return { data: { message: 'Produit créé avec succès', id: Date.now() } };
   },
-  updateProduct: async (id, data) => {
+  updateProduct: async (_id, _data) => {
     await simulateDelay();
     return { data: { message: 'Produit mis à jour avec succès' } };
   },
-  deleteProduct: async (id) => {
+  deleteProduct: async (_id) => {
     await simulateDelay();
     return { data: { message: 'Produit supprimé avec succès' } };
   },
@@ -150,13 +150,13 @@ const mockAPI = {
       }
     };
   },
-  updateUserProfile: async (data) => {
+  updateUserProfile: async (_data) => {
     await simulateDelay();
     return { data: { message: 'Profil mis à jour avec succès' } };
   },
 
   // Commandes
-  createOrder: async (orderData) => {
+  createOrder: async (_orderData) => {
     await simulateDelay();
     return { data: { message: 'Commande créée avec succès', id: Date.now() } };
   },
@@ -171,7 +171,8 @@ const mockAPI = {
 };
 
 // Exporter l'API réelle ou l'API mock selon l'environnement
-export default process.env.NODE_ENV === 'development' ? mockAPI : {
+const isDevelopment = typeof process !== 'undefined' && process.env && process.env.NODE_ENV === 'development';
+export default isDevelopment ? mockAPI : {
   // Produits
   getProducts: () => api.get('/product'),
   getProduct: (id) => api.get(`/product/${id}`),

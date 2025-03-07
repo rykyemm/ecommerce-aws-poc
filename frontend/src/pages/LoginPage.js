@@ -24,12 +24,8 @@ const LoginPage = () => {
       setError('');
       setLoading(true);
       
-      // Pour cette POC, nous simulons la connexion
-      // Normalement, vous utiliseriez : await login(email, password);
-      setTimeout(() => {
-        console.log('Connexion simulée avec:', email);
-        navigate('/');
-      }, 1000);
+      await login(email, password);
+      navigate('/');
       
     } catch (err) {
       setError('Échec de la connexion. Vérifiez vos identifiants.');
