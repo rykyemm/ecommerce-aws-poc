@@ -1,0 +1,20 @@
+{
+    "name": "ecommerce/api",
+    "description": "API pour une application e-commerce",
+    "type": "project",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Your Name",
+            "email": "your.email@example.com"
+        }
+    ],
+    "require": {
+        "php": ">=7.4"
+    },
+    "autoload": {
+        "psr-4": {
+            "App\\": "./"
+        }
+    }
+} 

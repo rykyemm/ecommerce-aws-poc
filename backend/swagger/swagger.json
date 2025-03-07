@@ -1,0 +1,313 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "API E-Commerce",
+    "description": "API pour la gestion d'une application e-commerce",
+    "version": "1.0.0",
+    "contact": {
+      "email": "contact@example.com"
+    }
+  },
+  "servers": [
+    {
+      "url": "/backend",
+      "description": "Serveur de développement"
+    }
+  ],
+  "tags": [
+    {
+      "name": "produits",
+      "description": "Opérations sur les produits"
+    },
+    {
+      "name": "utilisateurs",
+      "description": "Opérations sur les utilisateurs"
+    },
+    {
+      "name": "commandes",
+      "description": "Opérations sur les commandes"
+    }
+  ],
+  "paths": {
+    "/api/product": {
+      "get": {
+        "tags": ["produits"],
+        "summary": "Récupérer tous les produits",
+        "responses": {
+          "200": {
+            "description": "Succès",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "records": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/Product"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Aucun produit trouvé"
+          }
+        }
+      },
+      "post": {
+        "tags": ["produits"],
+        "summary": "Créer un nouveau produit",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ProductCreate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Produit créé avec succès",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    },
+                    "id": {
+                      "type": "integer"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Données incomplètes"
+          },
+          "503": {
+            "description": "Impossible de créer le produit"
+          }
+        }
+      }
+    },
+    "/api/product/{id}": {
+      "get": {
+        "tags": ["produits"],
+        "summary": "Récupérer un produit par ID",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Succès",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Product"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Produit non trouvé"
+          }
+        }
+      },
+      "put": {
+        "tags": ["produits"],
+        "summary": "Mettre à jour un produit",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ProductUpdate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Produit mis à jour avec succès"
+          },
+          "404": {
+            "description": "Produit non trouvé"
+          },
+          "503": {
+            "description": "Impossible de mettre à jour le produit"
+          }
+        }
+      },
+      "delete": {
+        "tags": ["produits"],
+        "summary": "Supprimer un produit",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Produit supprimé avec succès"
+          },
+          "404": {
+            "description": "Produit non trouvé"
+          },
+          "503": {
+            "description": "Impossible de supprimer le produit"
+          }
+        }
+      }
+    },
+    "/api/product/search/{keywords}": {
+      "get": {
+        "tags": ["produits"],
+        "summary": "Rechercher des produits",
+        "parameters": [
+          {
+            "name": "keywords",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Succès",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "records": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/Product"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Aucun produit trouvé pour cette recherche"
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "Product": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer"
+          },
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "price": {
+            "type": "number",
+            "format": "float"
+          },
+          "stock_quantity": {
+            "type": "integer"
+          },
+          "category_id": {
+            "type": "integer"
+          },
+          "category_name": {
+            "type": "string"
+          },
+          "image_url": {
+            "type": "string"
+          }
+        }
+      },
+      "ProductCreate": {
+        "type": "object",
+        "required": ["name", "price", "stock_quantity"],
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "price": {
+            "type": "number",
+            "format": "float"
+          },
+          "stock_quantity": {
+            "type": "integer"
+          },
+          "category_id": {
+            "type": "integer"
+          },
+          "image_url": {
+            "type": "string"
+          }
+        }
+      },
+      "ProductUpdate": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "price": {
+            "type": "number",
+            "format": "float"
+          },
+          "stock_quantity": {
+            "type": "integer"
+          },
+          "category_id": {
+            "type": "integer"
+          },
+          "image_url": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  }
+} 
