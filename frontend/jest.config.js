@@ -28,6 +28,7 @@ module.exports = {
     '^.+\\.(js|jsx|ts|tsx)$': ['babel-jest', { configFile: './babel.config.js' }]
   },
   transformIgnorePatterns: [
-    '/node_modules/(?!(axios|axios-mock-adapter)/)'
-  ]
+    'node_modules/(?!axios|react-router-dom|@remix-run|@babel|@testing-library)/'
+  ],
+  moduleDirectories: ['node_modules', 'src']
 }; 

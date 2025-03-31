@@ -51,7 +51,7 @@ jobs:
     - name: Run Jest Tests
       run: |
         cd frontend
-        npm install --save-dev jest @testing-library/react @testing-library/jest-dom @testing-library/user-event jest-environment-jsdom identity-obj-proxy babel-jest @babel/core @babel/preset-env @babel/preset-react
+        npm install --save-dev jest @testing-library/react @testing-library/jest-dom @testing-library/user-event jest-environment-jsdom identity-obj-proxy babel-jest @babel/core @babel/preset-env @babel/preset-react @babel/plugin-transform-modules-commonjs
         npm run test:coverage
         
     - name: Upload Jest coverage
