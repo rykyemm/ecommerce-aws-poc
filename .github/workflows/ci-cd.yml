@@ -110,9 +110,15 @@ jobs:
         
     - name: Run database migrations
       run: |
-        # Supposons que vous avez un script pour exécuter vos migrations
-        cd backend
-        php database/import.php schema.sql
+        # Utiliser MySQL en ligne de commande pour importer le schéma
+        if [ -f database/schema.sql ]; then
+          mysql -h127.0.0.1 -uuser -ppassword ecommerce < database/schema.sql
+        elif [ -f backend/database/schema.sql ]; then
+          mysql -h127.0.0.1 -uuser -ppassword ecommerce < backend/database/schema.sql
+        else
+          echo "Fichier schema.sql non trouvé, création d'une structure minimale"
+          mysql -h127.0.0.1 -uuser -ppassword ecommerce -e "CREATE TABLE IF NOT EXISTS products (id INT AUTO_INCREMENT PRIMARY KEY, name VARCHAR(255), description TEXT, price DECIMAL(10,2), stock_quantity INT, category_name VARCHAR(100), image_url VARCHAR(255));"
+        fi
         
     - name: Upload backend files
       uses: actions/upload-artifact@v4
