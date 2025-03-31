@@ -1,7 +1,19 @@
 import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
 import ProductCard from './ProductCard';
-import { TestWrapper } from '../test-utils/test-wrapper';
+import { CartProvider } from '../context/__mocks__/CartContext';
+import { BrowserRouter } from 'react-router-dom';
+
+// Mock the useCart hook
+jest.mock('../context/CartContext', () => {
+  const originalModule = jest.requireActual('../context/__mocks__/CartContext');
+  return {
+    ...originalModule,
+    useCart: () => ({
+      addToCart: jest.fn()
+    })
+  };
+});
 
 const mockProduct = {
   id: 1,
@@ -16,9 +28,11 @@ const mockProduct = {
 describe('ProductCard', () => {
   test('renders product information correctly', () => {
     render(
-      <TestWrapper>
-        <ProductCard product={mockProduct} />
-      </TestWrapper>
+      <BrowserRouter>
+        <CartProvider>
+          <ProductCard product={mockProduct} />
+        </CartProvider>
+      </BrowserRouter>
     );
     
     expect(screen.getByText(mockProduct.name)).toBeInTheDocument();
@@ -29,9 +43,11 @@ describe('ProductCard', () => {
 
   test('handles add to cart click', () => {
     render(
-      <TestWrapper>
-        <ProductCard product={mockProduct} />
-      </TestWrapper>
+      <BrowserRouter>
+        <CartProvider>
+          <ProductCard product={mockProduct} />
+        </CartProvider>
+      </BrowserRouter>
     );
     
     const addToCartButton = screen.getByText('Ajouter au panier');
