@@ -25,10 +25,9 @@ module.exports = {
     '<rootDir>/src/**/*.{spec,test}.{js,jsx,ts,tsx}'
   ],
   transform: {
-    '^.+\\.(js|jsx|ts|tsx)$': 'babel-jest'
+    '^.+\\.(js|jsx|ts|tsx)$': ['babel-jest', { configFile: './babel.config.js' }]
   },
   transformIgnorePatterns: [
-    '/node_modules/',
-    '^.+\\.module\\.(css|sass|scss)$'
+    '/node_modules/(?!(axios|axios-mock-adapter)/)'
   ]
 }; 
