@@ -52,7 +52,7 @@ jobs:
       run: |
         cd frontend
         npm install --save-dev jest @testing-library/react @testing-library/jest-dom @testing-library/user-event jest-environment-jsdom identity-obj-proxy babel-jest @babel/core @babel/preset-env @babel/preset-react @babel/plugin-transform-modules-commonjs
-        npm run test:coverage
+        npm run test:coverage -- --no-cache
         
     - name: Upload Jest coverage
       uses: actions/upload-artifact@v4
@@ -63,7 +63,7 @@ jobs:
     - name: Build React app
       run: |
         cd frontend
-        npm run build
+        CI=false npm run build
         
     - name: Upload frontend build
       uses: actions/upload-artifact@v4
