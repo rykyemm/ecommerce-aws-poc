@@ -24,8 +24,8 @@ class Product {
     /**
      * Constructeur avec $db comme connexion à la base de données
      */
-    public function __construct() {
-        $this->conn = Database::getInstance()->getConnection();
+    public function __construct($db) {
+        $this->conn = $db;
     }
 
     /**
@@ -100,41 +100,39 @@ class Product {
      * 
      * @return bool
      */
-    public function create() {
+    public function create($data) {
         $query = "INSERT INTO " . $this->table . "
-                  SET
-                    name = :name,
-                    description = :description,
-                    price = :price,
-                    stock_quantity = :stock_quantity,
-                    category_id = :category_id,
-                    image_url = :image_url";
+                (name, description, price, stock_quantity, category_id, image_url)
+                VALUES
+                (:name, :description, :price, :stock_quantity, :category_id, :image_url)";
 
         $stmt = $this->conn->prepare($query);
 
-        // Nettoyer les données
-        $this->name = htmlspecialchars(strip_tags($this->name));
-        $this->description = htmlspecialchars(strip_tags($this->description));
-        $this->price = htmlspecialchars(strip_tags($this->price));
-        $this->stock_quantity = htmlspecialchars(strip_tags($this->stock_quantity));
-        $this->category_id = htmlspecialchars(strip_tags($this->category_id));
-        $this->image_url = htmlspecialchars(strip_tags($this->image_url));
+        // Nettoyer et lier les données
+        $this->name = htmlspecialchars(strip_tags($data['name']));
+        $this->description = htmlspecialchars(strip_tags($data['description'] ?? ''));
+        $this->price = $data['price'];
+        $this->stock_quantity = $data['stock_quantity'];
+        $this->category_id = $data['category_id'] ?? null;
+        $this->image_url = $data['image_url'] ?? null;
 
-        // Bind des valeurs
-        $stmt->bindParam(':name', $this->name);
-        $stmt->bindParam(':description', $this->description);
-        $stmt->bindParam(':price', $this->price);
-        $stmt->bindParam(':stock_quantity', $this->stock_quantity);
-        $stmt->bindParam(':category_id', $this->category_id);
-        $stmt->bindParam(':image_url', $this->image_url);
+        // Lier les valeurs
+        $stmt->bindParam(":name", $this->name);
+        $stmt->bindParam(":description", $this->description);
+        $stmt->bindParam(":price", $this->price);
+        $stmt->bindParam(":stock_quantity", $this->stock_quantity);
+        $stmt->bindParam(":category_id", $this->category_id);
+        $stmt->bindParam(":image_url", $this->image_url);
 
-        // Exécuter la requête
         if ($stmt->execute()) {
             $this->id = $this->conn->lastInsertId();
-            return true;
+            return [
+                "message" => "Produit créé avec succès.",
+                "id" => $this->id
+            ];
         }
 
-        return false;
+        throw new \Exception("Impossible de créer le produit.");
     }
 
     /**
@@ -142,44 +140,41 @@ class Product {
      * 
      * @return bool
      */
-    public function update() {
+    public function update($id, $data) {
         $query = "UPDATE " . $this->table . "
-                SET
-                    name = :name,
+                SET name = :name,
                     description = :description,
                     price = :price,
                     stock_quantity = :stock_quantity,
                     category_id = :category_id,
                     image_url = :image_url
-                WHERE
-                    id = :id";
+                WHERE id = :id";
 
         $stmt = $this->conn->prepare($query);
 
-        // Nettoyer les données
-        $this->id = htmlspecialchars(strip_tags($this->id));
-        $this->name = htmlspecialchars(strip_tags($this->name));
-        $this->description = htmlspecialchars(strip_tags($this->description));
-        $this->price = htmlspecialchars(strip_tags($this->price));
-        $this->stock_quantity = htmlspecialchars(strip_tags($this->stock_quantity));
-        $this->category_id = htmlspecialchars(strip_tags($this->category_id));
-        $this->image_url = htmlspecialchars(strip_tags($this->image_url));
+        // Nettoyer et lier les données
+        $this->id = $id;
+        $this->name = htmlspecialchars(strip_tags($data['name']));
+        $this->description = htmlspecialchars(strip_tags($data['description'] ?? ''));
+        $this->price = $data['price'];
+        $this->stock_quantity = $data['stock_quantity'];
+        $this->category_id = $data['category_id'] ?? null;
+        $this->image_url = $data['image_url'] ?? null;
 
-        // Bind des valeurs
-        $stmt->bindParam(':id', $this->id);
-        $stmt->bindParam(':name', $this->name);
-        $stmt->bindParam(':description', $this->description);
-        $stmt->bindParam(':price', $this->price);
-        $stmt->bindParam(':stock_quantity', $this->stock_quantity);
-        $stmt->bindParam(':category_id', $this->category_id);
-        $stmt->bindParam(':image_url', $this->image_url);
+        // Lier les valeurs
+        $stmt->bindParam(":id", $this->id);
+        $stmt->bindParam(":name", $this->name);
+        $stmt->bindParam(":description", $this->description);
+        $stmt->bindParam(":price", $this->price);
+        $stmt->bindParam(":stock_quantity", $this->stock_quantity);
+        $stmt->bindParam(":category_id", $this->category_id);
+        $stmt->bindParam(":image_url", $this->image_url);
 
-        // Exécuter la requête
         if ($stmt->execute()) {
-            return true;
+            return ["message" => "Produit mis à jour avec succès."];
         }
 
-        return false;
+        throw new \Exception("Impossible de mettre à jour le produit.");
     }
 
     /**
@@ -187,19 +182,16 @@ class Product {
      * 
      * @return bool
      */
-    public function delete() {
+    public function delete($id) {
         $query = "DELETE FROM " . $this->table . " WHERE id = :id";
-
         $stmt = $this->conn->prepare($query);
-
-        $this->id = htmlspecialchars(strip_tags($this->id));
-        $stmt->bindParam(':id', $this->id);
+        $stmt->bindParam(":id", $id);
 
         if ($stmt->execute()) {
-            return true;
+            return ["message" => "Produit supprimé avec succès."];
         }
 
-        return false;
+        throw new \Exception("Impossible de supprimer le produit.");
     }
 
     /**

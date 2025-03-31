@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_URL = '/backend/api';
+const API_URL = '/api';
 
 // Configuration de base pour axios
 const api = axios.create({
@@ -170,8 +170,10 @@ const mockAPI = {
   }
 };
 
+// Use mock API in development mode
+const isDevelopment = true; // Force to use mock API
+
 // Exporter l'API réelle ou l'API mock selon l'environnement
-const isDevelopment = typeof process !== 'undefined' && process.env && process.env.NODE_ENV === 'development';
 export default isDevelopment ? mockAPI : {
   // Produits
   getProducts: () => api.get('/product'),
