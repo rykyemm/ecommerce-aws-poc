@@ -1,0 +1,11 @@
+{
+    "id": "ecommerce-api-environment",
+    "name": "E-commerce API Environment",
+    "values": [
+        {
+            "key": "baseUrl",
+            "value": "http://localhost:8080",
+            "enabled": true
+        }
+    ]
+} 

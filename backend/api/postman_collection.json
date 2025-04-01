@@ -1,0 +1,292 @@
+{
+    "info": {
+        "name": "E-commerce API Tests",
+        "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+    },
+    "item": [
+        {
+            "name": "Products",
+            "item": [
+                {
+                    "name": "Get All Products",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "http://localhost:8080/api/products",
+                            "protocol": "http",
+                            "host": ["localhost"],
+                            "port": "8080",
+                            "path": ["api", "products"]
+                        },
+                        "description": "Get all products from the database"
+                    },
+                    "response": [
+                        {
+                            "name": "Success Response",
+                            "originalRequest": {
+                                "method": "GET",
+                                "header": [],
+                                "url": {
+                                    "raw": "http://localhost:8080/api/products",
+                                    "protocol": "http",
+                                    "host": ["localhost"],
+                                    "port": "8080",
+                                    "path": ["api", "products"]
+                                }
+                            },
+                            "status": "OK",
+                            "code": 200,
+                            "_postman_previewlanguage": "json",
+                            "header": [
+                                {
+                                    "key": "Content-Type",
+                                    "value": "application/json"
+                                }
+                            ],
+                            "body": {
+                                "status": 200,
+                                "data": [
+                                    {
+                                        "id": 1,
+                                        "name": "Test Product",
+                                        "description": "Test Description",
+                                        "price": 99.99,
+                                        "stock_quantity": 10,
+                                        "category_id": 1
+                                    }
+                                ]
+                            }
+                        }
+                    ]
+                },
+                {
+                    "name": "Get Single Product",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "http://localhost:8080/api/products/1",
+                            "protocol": "http",
+                            "host": ["localhost"],
+                            "port": "8080",
+                            "path": ["api", "products", "1"]
+                        },
+                        "description": "Get a single product by ID"
+                    },
+                    "response": [
+                        {
+                            "name": "Success Response",
+                            "originalRequest": {
+                                "method": "GET",
+                                "header": [],
+                                "url": {
+                                    "raw": "http://localhost:8080/api/products/1",
+                                    "protocol": "http",
+                                    "host": ["localhost"],
+                                    "port": "8080",
+                                    "path": ["api", "products", "1"]
+                                }
+                            },
+                            "status": "OK",
+                            "code": 200,
+                            "_postman_previewlanguage": "json",
+                            "header": [
+                                {
+                                    "key": "Content-Type",
+                                    "value": "application/json"
+                                }
+                            ],
+                            "body": {
+                                "status": 200,
+                                "data": {
+                                    "id": 1,
+                                    "name": "Test Product",
+                                    "description": "Test Description",
+                                    "price": 99.99,
+                                    "stock_quantity": 10,
+                                    "category_id": 1
+                                }
+                            }
+                        }
+                    ]
+                },
+                {
+                    "name": "Create Product",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"name\": \"New Product\",\n    \"description\": \"New Product Description\",\n    \"price\": 149.99,\n    \"stock_quantity\": 20,\n    \"category_id\": 1\n}"
+                        },
+                        "url": {
+                            "raw": "http://localhost:8080/api/products",
+                            "protocol": "http",
+                            "host": ["localhost"],
+                            "port": "8080",
+                            "path": ["api", "products"]
+                        },
+                        "description": "Create a new product"
+                    },
+                    "response": [
+                        {
+                            "name": "Success Response",
+                            "originalRequest": {
+                                "method": "POST",
+                                "header": [
+                                    {
+                                        "key": "Content-Type",
+                                        "value": "application/json"
+                                    }
+                                ],
+                                "body": {
+                                    "mode": "raw",
+                                    "raw": "{\n    \"name\": \"New Product\",\n    \"description\": \"New Product Description\",\n    \"price\": 149.99,\n    \"stock_quantity\": 20,\n    \"category_id\": 1\n}"
+                                },
+                                "url": {
+                                    "raw": "http://localhost:8080/api/products",
+                                    "protocol": "http",
+                                    "host": ["localhost"],
+                                    "port": "8080",
+                                    "path": ["api", "products"]
+                                }
+                            },
+                            "status": "Created",
+                            "code": 201,
+                            "_postman_previewlanguage": "json",
+                            "header": [
+                                {
+                                    "key": "Content-Type",
+                                    "value": "application/json"
+                                }
+                            ],
+                            "body": {
+                                "status": 201,
+                                "data": {
+                                    "id": 2,
+                                    "message": "Product created successfully"
+                                }
+                            }
+                        }
+                    ]
+                },
+                {
+                    "name": "Update Product",
+                    "request": {
+                        "method": "PUT",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"name\": \"Updated Product\",\n    \"description\": \"Updated Description\",\n    \"price\": 199.99,\n    \"stock_quantity\": 15,\n    \"category_id\": 1\n}"
+                        },
+                        "url": {
+                            "raw": "http://localhost:8080/api/products/1",
+                            "protocol": "http",
+                            "host": ["localhost"],
+                            "port": "8080",
+                            "path": ["api", "products", "1"]
+                        },
+                        "description": "Update an existing product"
+                    },
+                    "response": [
+                        {
+                            "name": "Success Response",
+                            "originalRequest": {
+                                "method": "PUT",
+                                "header": [
+                                    {
+                                        "key": "Content-Type",
+                                        "value": "application/json"
+                                    }
+                                ],
+                                "body": {
+                                    "mode": "raw",
+                                    "raw": "{\n    \"name\": \"Updated Product\",\n    \"description\": \"Updated Description\",\n    \"price\": 199.99,\n    \"stock_quantity\": 15,\n    \"category_id\": 1\n}"
+                                },
+                                "url": {
+                                    "raw": "http://localhost:8080/api/products/1",
+                                    "protocol": "http",
+                                    "host": ["localhost"],
+                                    "port": "8080",
+                                    "path": ["api", "products", "1"]
+                                }
+                            },
+                            "status": "OK",
+                            "code": 200,
+                            "_postman_previewlanguage": "json",
+                            "header": [
+                                {
+                                    "key": "Content-Type",
+                                    "value": "application/json"
+                                }
+                            ],
+                            "body": {
+                                "status": 200,
+                                "data": {
+                                    "message": "Product updated successfully"
+                                }
+                            }
+                        }
+                    ]
+                },
+                {
+                    "name": "Delete Product",
+                    "request": {
+                        "method": "DELETE",
+                        "header": [],
+                        "url": {
+                            "raw": "http://localhost:8080/api/products/1",
+                            "protocol": "http",
+                            "host": ["localhost"],
+                            "port": "8080",
+                            "path": ["api", "products", "1"]
+                        },
+                        "description": "Delete a product by ID"
+                    },
+                    "response": [
+                        {
+                            "name": "Success Response",
+                            "originalRequest": {
+                                "method": "DELETE",
+                                "header": [],
+                                "url": {
+                                    "raw": "http://localhost:8080/api/products/1",
+                                    "protocol": "http",
+                                    "host": ["localhost"],
+                                    "port": "8080",
+                                    "path": ["api", "products", "1"]
+                                }
+                            },
+                            "status": "OK",
+                            "code": 200,
+                            "_postman_previewlanguage": "json",
+                            "header": [
+                                {
+                                    "key": "Content-Type",
+                                    "value": "application/json"
+                                }
+                            ],
+                            "body": {
+                                "status": 200,
+                                "data": {
+                                    "message": "Product deleted successfully"
+                                }
+                            }
+                        }
+                    ]
+                }
+            ]
+        }
+    ]
+} 

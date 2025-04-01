@@ -18,9 +18,13 @@
   "scripts": {
     "start": "react-scripts start",
     "build": "react-scripts build",
-    "test": "react-scripts test --passWithNoTests",
+    "test": "react-scripts test",
     "test:coverage": "react-scripts test --coverage --watchAll=false --passWithNoTests",
-    "eject": "react-scripts eject"
+    "eject": "react-scripts eject",
+    "test:e2e": "cypress run",
+    "test:e2e:open": "cypress open",
+    "test:e2e:ci": "cypress run --record --key your-cypress-key",
+    "test:e2e:parallel": "cypress-parallel -s cy:run -t 4 -d cypress/e2e/**/*.cy.js"
   },
   "eslintConfig": {
     "extends": [
@@ -40,5 +44,11 @@
       "last 1 safari version"
     ]
   },
-  "proxy": "http://localhost:8080"
+  "proxy": "http://localhost:8080",
+  "devDependencies": {
+    "@testing-library/react": "^14.0.0",
+    "@testing-library/jest-dom": "^6.0.0",
+    "cypress": "^13.0.0",
+    "cypress-parallel": "^0.4.0"
+  }
 } 

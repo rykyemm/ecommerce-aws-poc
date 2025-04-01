@@ -99,53 +99,79 @@ jobs:
     - name: Set up PHP
       uses: shivammathur/setup-php@v2
       with:
-        php-version: '8.0'
-        extensions: mbstring, pdo_mysql
-        tools: composer
+        php-version: '8.3'
+        extensions: pdo_mysql
         
-    - name: Install PHP dependencies
+    - name: Install dependencies
       run: |
         cd backend
-        composer install --no-dev --optimize-autoloader
+        composer install --no-interaction --prefer-dist --optimize-autoloader
         
-    - name: Run database migrations
+    - name: Run PHPUnit tests
       run: |
-        # Utiliser MySQL en ligne de commande pour importer le schéma
-        if [ -f database/schema.sql ]; then
-          mysql -h127.0.0.1 -uuser -ppassword ecommerce < database/schema.sql
-        elif [ -f backend/database/schema.sql ]; then
-          mysql -h127.0.0.1 -uuser -ppassword ecommerce < backend/database/schema.sql
-        else
-          echo "Fichier schema.sql non trouvé, création d'une structure minimale"
-          mysql -h127.0.0.1 -uuser -ppassword ecommerce -e "CREATE TABLE IF NOT EXISTS products (id INT AUTO_INCREMENT PRIMARY KEY, name VARCHAR(255), description TEXT, price DECIMAL(10,2), stock_quantity INT, category_name VARCHAR(100), image_url VARCHAR(255));"
-        fi
+        cd backend
+        vendor/bin/phpunit --coverage-text --coverage-clover=coverage.xml
         
-    - name: Upload backend files
+    - name: Upload PHP coverage
       uses: actions/upload-artifact@v4
       with:
-        name: backend-files
-        path: backend
+        name: backend-coverage
+        path: backend/coverage.xml
 
   api-tests:
-    name: Run API Tests
+    name: API Tests
     runs-on: ubuntu-latest
     needs: backend
     
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_DATABASE: ecommerce
+          MYSQL_USER: user
+          MYSQL_PASSWORD: password
+        ports:
+          - 3306:3306
+        options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=3
+
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-      
-    - name: Install Node.js
-      uses: actions/setup-node@v4
+    - uses: actions/checkout@v4
+    
+    - name: Setup PHP
+      uses: shivammathur/setup-php@v2
       with:
-        node-version: '18'
+        php-version: '8.3'
+        extensions: pdo_mysql
         
     - name: Install Newman
       run: npm install -g newman
-      
+    
+    - name: Install MySQL Client
+      run: sudo apt-get install -y mysql-client
+    
+    - name: Initialize Test Database
+      run: |
+        mysql -h 127.0.0.1 -u user -ppassword ecommerce < backend/api/setup_test_db.sql
+    
+    - name: Start PHP Server
+      run: |
+        cd backend
+        php -S localhost:8080 server.php &
+        sleep 5
+    
     - name: Run API Tests
-      run: newman run tests/api/e-commerce-api.postman_collection.json --environment tests/api/environment.json
-      continue-on-error: true  # Pour que le pipeline continue même si les tests échouent
+      run: |
+        cd backend/api
+        mkdir -p results
+        newman run newman.json -e environment.json --reporters cli,junit --reporter-junit-export results/junit-report.xml
+    
+    - name: Upload Test Results
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: api-test-results
+        path: backend/api/results/
 
   performance-tests:
     name: Run Performance Tests
@@ -196,8 +222,8 @@ jobs:
           jmeter -n -t performance_tests/performance_tests.jmx -l performance_tests/results.jtl
         else
           echo "Le fichier JMeter n'a pas été trouvé."
+          exit 1
         fi
-      continue-on-error: true  # Pour que le pipeline continue même si les tests échouent
       
     - name: View Test Results
       run: |
@@ -206,20 +232,120 @@ jobs:
           cat performance_tests/results.jtl
         else
           echo "Aucun résultat de test de performance trouvé."
+          exit 1
         fi
-      continue-on-error: true
       
     - name: Archive performance test results
       uses: actions/upload-artifact@v4
       with:
         name: performance-test-results
         path: performance_tests/results.jtl
-      continue-on-error: true
+
+  e2e-tests:
+    name: Run E2E Tests
+    runs-on: ubuntu-latest
+    needs: [frontend, backend, api-tests]
+    
+    services:
+      mysql:
+        image: mysql:8
+        env:
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_DATABASE: ecommerce
+          MYSQL_USER: user
+          MYSQL_PASSWORD: password
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping --host=localhost --user=root --password=root"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=3
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+
+    - name: Set up PHP
+      uses: shivammathur/setup-php@v2
+      with:
+        php-version: '8.2'
+        extensions: mbstring, pdo_mysql
+        
+    - name: Install Selenium dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y wget unzip chromium-browser chromium-chromedriver
+
+    - name: Download Selenium Server
+      run: |
+        wget https://github.com/SeleniumHQ/selenium/releases/download/selenium-4.16.0/selenium-server-4.16.1.jar
+        java -version
+
+    - name: Start Selenium Server
+      run: |
+        java -jar selenium-server-4.16.1.jar standalone > selenium.log 2>&1 &
+        sleep 5
+
+    - name: Install frontend dependencies
+      run: |
+        cd frontend
+        npm install --legacy-peer-deps
+        npm install --save-dev selenium-webdriver @types/selenium-webdriver chromedriver
+
+    - name: Install backend dependencies
+      run: |
+        cd backend
+        composer install --prefer-dist --no-progress
+
+    - name: Start backend server
+      run: |
+        cd backend
+        php -S localhost:8000 &
+        sleep 5
+
+    - name: Start frontend server
+      run: |
+        cd frontend
+        npm start &
+        sleep 10
+
+    - name: Run Selenium Tests
+      run: |
+        cd frontend
+        # Vérifier si le script de test E2E existe dans package.json
+        if grep -q "\"test:e2e\"" package.json; then
+          npm run test:e2e
+        else
+          echo "Aucun script test:e2e défini dans package.json."
+          exit 1
+        fi
+
+    - name: Upload Selenium logs
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: selenium-logs
+        path: |
+          selenium.log
+          frontend/e2e-results
+          
+    - name: Stop servers
+      if: always()
+      run: |
+        pkill node || true
+        pkill php || true
+        pkill java || true
 
   package:
     name: Create Deployment Package
     runs-on: ubuntu-latest
-    needs: [frontend, backend, performance-tests]
+    needs: [frontend, backend, api-tests, performance-tests, e2e-tests]
     
     steps:
     - name: Checkout code
@@ -320,105 +446,22 @@ jobs:
         
         echo "Deployment metadata recorded"
 
-  e2e-tests:
-    name: Run E2E Tests
+  deploy:
+    name: Deploy to Production
     runs-on: ubuntu-latest
-    needs: frontend
-    
-    services:
-      mysql:
-        image: mysql:8
-        env:
-          MYSQL_ROOT_PASSWORD: root
-          MYSQL_DATABASE: ecommerce
-          MYSQL_USER: user
-          MYSQL_PASSWORD: password
-        ports:
-          - 3306:3306
-        options: >-
-          --health-cmd="mysqladmin ping --host=localhost --user=root --password=root"
-          --health-interval=10s
-          --health-timeout=5s
-          --health-retries=3
+    needs: [frontend, backend, api-tests, performance-tests, e2e-tests, deploy-to-s3]
+    if: github.ref == 'refs/heads/main'
     
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
-
-    - name: Set up Node.js
-      uses: actions/setup-node@v4
-      with:
-        node-version: '18'
-
-    - name: Set up PHP
-      uses: shivammathur/setup-php@v2
-      with:
-        php-version: '8.2'
-        extensions: mbstring, pdo_mysql
+      
+    - name: Deploy frontend
+      run: |
+        echo "Deploying frontend..."
+        # Ajoutez ici vos commandes de déploiement frontend
         
-    - name: Install Selenium dependencies
+    - name: Deploy backend
       run: |
-        sudo apt-get update
-        sudo apt-get install -y wget unzip chromium-browser chromium-chromedriver
-
-    - name: Download Selenium Server
-      run: |
-        wget https://github.com/SeleniumHQ/selenium/releases/download/selenium-4.16.0/selenium-server-4.16.1.jar
-        java -version
-
-    - name: Start Selenium Server
-      run: |
-        java -jar selenium-server-4.16.1.jar standalone > selenium.log 2>&1 &
-        sleep 5
-
-    - name: Install frontend dependencies
-      run: |
-        cd frontend
-        npm install --legacy-peer-deps
-        npm install --save-dev selenium-webdriver @types/selenium-webdriver chromedriver
-
-    - name: Install backend dependencies
-      run: |
-        cd backend
-        composer install --prefer-dist --no-progress
-
-    - name: Start backend server
-      run: |
-        cd backend
-        php -S localhost:8000 &
-        sleep 5
-
-    - name: Start frontend server
-      run: |
-        cd frontend
-        npm start &
-        sleep 10
-
-    - name: Run Selenium Tests
-      run: |
-        cd frontend
-        # Vérifier si le script de test E2E existe dans package.json
-        if grep -q "\"test:e2e\"" package.json; then
-          npm run test:e2e
-        else
-          echo "Aucun script test:e2e défini dans package.json. Création d'un test fictif."
-          mkdir -p e2e-results
-          echo "Pas de tests E2E exécutés - configuration à mettre en place" > e2e-results/summary.txt
-        fi
-      continue-on-error: true
-
-    - name: Upload Selenium logs
-      if: always()
-      uses: actions/upload-artifact@v4
-      with:
-        name: selenium-logs
-        path: |
-          selenium.log
-          frontend/e2e-results
-          
-    - name: Stop servers
-      if: always()
-      run: |
-        pkill node || true
-        pkill php || true
-        pkill java || true 
+        echo "Deploying backend..."
+        # Ajoutez ici vos commandes de déploiement backend 

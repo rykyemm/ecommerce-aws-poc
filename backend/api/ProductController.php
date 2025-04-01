@@ -3,13 +3,22 @@ namespace App\Controllers;
 
 use App\Models\Product;
 use App\Models\Database;
+use PDO;
+use PDOException;
 
 class ProductController {
     private $db;
     private $product;
 
     public function __construct() {
-        $this->db = Database::getInstance()->getConnection();
+        try {
+            $this->db = new PDO("mysql:host=localhost;dbname=ecommerce", "user", "password");
+            $this->db->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+        } catch(PDOException $e) {
+            http_response_code(500);
+            echo json_encode(['error' => 'Database connection failed']);
+            exit;
+        }
         $this->product = new Product($this->db);
     }
 
@@ -18,69 +27,17 @@ class ProductController {
      */
     public function index() {
         try {
-            $products = $this->product->findAll();
-            
-            // Si aucun produit n'est trouvé, retourner des données mockées
-            if (empty($products)) {
-                $products = [
-                    [
-                        'id' => 1,
-                        'name' => 'iPhone 13',
-                        'description' => 'Smartphone Apple avec écran Super Retina XDR',
-                        'price' => 999.99,
-                        'stock_quantity' => 50,
-                        'category_id' => 4,
-                        'category_name' => 'Smartphones',
-                        'image_url' => 'iphone13.txt'
-                    ],
-                    [
-                        'id' => 2,
-                        'name' => 'Samsung Galaxy S21',
-                        'description' => 'Smartphone Samsung avec écran Dynamic AMOLED',
-                        'price' => 799.99,
-                        'stock_quantity' => 75,
-                        'category_id' => 4,
-                        'category_name' => 'Smartphones',
-                        'image_url' => 'galaxys21.txt'
-                    ],
-                    [
-                        'id' => 3,
-                        'name' => 'MacBook Pro',
-                        'description' => 'Ordinateur portable Apple avec puce M1',
-                        'price' => 1299.99,
-                        'stock_quantity' => 30,
-                        'category_id' => 5,
-                        'category_name' => 'Ordinateurs',
-                        'image_url' => 'macbookpro.txt'
-                    ],
-                    [
-                        'id' => 4,
-                        'name' => 'Dell XPS 15',
-                        'description' => 'Ordinateur portable Dell avec écran InfinityEdge',
-                        'price' => 1199.99,
-                        'stock_quantity' => 25,
-                        'category_id' => 5,
-                        'category_name' => 'Ordinateurs',
-                        'image_url' => 'dellxps15.txt'
-                    ]
-                ];
-            }
-
-            // Ajouter l'URL complète pour chaque image
-            foreach ($products as &$product) {
-                if (!isset($product['image_url']) || empty($product['image_url'])) {
-                    // Utiliser un fichier texte par défaut basé sur le nom du produit
-                    $defaultImage = strtolower(str_replace(' ', '', $product['name'])) . '.txt';
-                    $product['image_url'] = '/images/products/' . $defaultImage;
-                } else {
-                    $product['image_url'] = '/images/products/' . $product['image_url'];
-                }
-            }
-
-            echo json_encode(['records' => $products]);
-        } catch (\Exception $e) {
-            http_response_code(500);
-            echo json_encode(['error' => $e->getMessage()]);
+            $stmt = $this->db->query("SELECT * FROM products");
+            $products = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            return [
+                'status' => 200,
+                'data' => $products
+            ];
+        } catch(PDOException $e) {
+            return [
+                'status' => 500,
+                'error' => 'Failed to fetch products'
+            ];
         }
     }
 
@@ -89,55 +46,57 @@ class ProductController {
      * 
      * @param int $id ID du produit
      */
-    public function read($id) {
-        if (!isset($id)) {
-            http_response_code(400);
-            echo json_encode(["message" => "ID du produit non fourni."]);
-            return;
-        }
-
-        if ($this->product->getOne($id)) {
-            $product_arr = [
-                "id" => $this->product->id,
-                "name" => $this->product->name,
-                "description" => $this->product->description,
-                "price" => $this->product->price,
-                "stock_quantity" => $this->product->stock_quantity,
-                "category_id" => $this->product->category_id,
-                "category_name" => $this->product->category_name,
-                "image_url" => $this->product->image_url
+    public function show($id) {
+        try {
+            $stmt = $this->db->prepare("SELECT * FROM products WHERE id = ?");
+            $stmt->execute([$id]);
+            $product = $stmt->fetch(PDO::FETCH_ASSOC);
+            
+            if (!$product) {
+                return [
+                    'status' => 404,
+                    'error' => 'Product not found'
+                ];
+            }
+            
+            return [
+                'status' => 200,
+                'data' => $product
             ];
-
-            http_response_code(200);
-            echo json_encode($product_arr);
-        } else {
-            http_response_code(404);
-            echo json_encode(["message" => "Produit non trouvé."]);
+        } catch(PDOException $e) {
+            return [
+                'status' => 500,
+                'error' => 'Failed to fetch product'
+            ];
         }
     }
 
     /**
      * API pour créer un produit
      */
-    public function create() {
+    public function create($data) {
         try {
-            $data = json_decode(file_get_contents('php://input'), true);
+            $stmt = $this->db->prepare("INSERT INTO products (name, description, price, stock_quantity, category_id) VALUES (?, ?, ?, ?, ?)");
+            $stmt->execute([
+                $data['name'],
+                $data['description'],
+                $data['price'],
+                $data['stock_quantity'],
+                $data['category_id']
+            ]);
             
-            // Gérer l'upload de l'image si présente
-            if (isset($_FILES['image'])) {
-                $imageController = new ImageController();
-                $imageResult = $imageController->upload();
-                
-                if (isset($imageResult['filename'])) {
-                    $data['image_url'] = $imageResult['filename'];
-                }
-            }
-
-            $result = $this->product->create($data);
-            echo json_encode($result);
-        } catch (\Exception $e) {
-            http_response_code(500);
-            echo json_encode(['error' => $e->getMessage()]);
+            return [
+                'status' => 201,
+                'data' => [
+                    'id' => $this->db->lastInsertId(),
+                    'message' => 'Product created successfully'
+                ]
+            ];
+        } catch(PDOException $e) {
+            return [
+                'status' => 500,
+                'error' => 'Failed to create product'
+            ];
         }
     }
 
@@ -146,31 +105,36 @@ class ProductController {
      * 
      * @param int $id ID du produit à mettre à jour
      */
-    public function update($id) {
+    public function update($id, $data) {
         try {
-            $data = json_decode(file_get_contents('php://input'), true);
+            $stmt = $this->db->prepare("UPDATE products SET name = ?, description = ?, price = ?, stock_quantity = ?, category_id = ? WHERE id = ?");
+            $stmt->execute([
+                $data['name'],
+                $data['description'],
+                $data['price'],
+                $data['stock_quantity'],
+                $data['category_id'],
+                $id
+            ]);
             
-            // Gérer l'upload de la nouvelle image si présente
-            if (isset($_FILES['image'])) {
-                $imageController = new ImageController();
-                $imageResult = $imageController->upload();
-                
-                if (isset($imageResult['filename'])) {
-                    // Supprimer l'ancienne image si elle existe
-                    $oldProduct = $this->product->findById($id);
-                    if ($oldProduct && isset($oldProduct['image_url'])) {
-                        $imageController->delete($oldProduct['image_url']);
-                    }
-                    
-                    $data['image_url'] = $imageResult['filename'];
-                }
+            if ($stmt->rowCount() === 0) {
+                return [
+                    'status' => 404,
+                    'error' => 'Product not found'
+                ];
             }
-
-            $result = $this->product->update($id, $data);
-            echo json_encode($result);
-        } catch (\Exception $e) {
-            http_response_code(500);
-            echo json_encode(['error' => $e->getMessage()]);
+            
+            return [
+                'status' => 200,
+                'data' => [
+                    'message' => 'Product updated successfully'
+                ]
+            ];
+        } catch(PDOException $e) {
+            return [
+                'status' => 500,
+                'error' => 'Failed to update product'
+            ];
         }
     }
 
@@ -181,18 +145,27 @@ class ProductController {
      */
     public function delete($id) {
         try {
-            // Supprimer l'image associée si elle existe
-            $product = $this->product->findById($id);
-            if ($product && isset($product['image_url'])) {
-                $imageController = new ImageController();
-                $imageController->delete($product['image_url']);
+            $stmt = $this->db->prepare("DELETE FROM products WHERE id = ?");
+            $stmt->execute([$id]);
+            
+            if ($stmt->rowCount() === 0) {
+                return [
+                    'status' => 404,
+                    'error' => 'Product not found'
+                ];
             }
-
-            $result = $this->product->delete($id);
-            echo json_encode($result);
-        } catch (\Exception $e) {
-            http_response_code(500);
-            echo json_encode(['error' => $e->getMessage()]);
+            
+            return [
+                'status' => 200,
+                'data' => [
+                    'message' => 'Product deleted successfully'
+                ]
+            ];
+        } catch(PDOException $e) {
+            return [
+                'status' => 500,
+                'error' => 'Failed to delete product'
+            ];
         }
     }
 
