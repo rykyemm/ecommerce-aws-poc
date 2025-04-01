@@ -1,19 +1,21 @@
 import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
 import ProductCard from './ProductCard';
-import { CartProvider } from '../context/__mocks__/CartContext';
+import { CartProvider } from '../context/CartContext';
 import { BrowserRouter } from 'react-router-dom';
 
 // Mock the useCart hook
-jest.mock('../context/CartContext', () => {
-  const originalModule = jest.requireActual('../context/__mocks__/CartContext');
-  return {
-    ...originalModule,
-    useCart: () => ({
-      addToCart: jest.fn()
-    })
-  };
-});
+jest.mock('../context/CartContext', () => ({
+  ...jest.requireActual('../context/CartContext'),
+  useCart: () => ({
+    addToCart: jest.fn(),
+    cartItems: [],
+    total: 0,
+    updateCartItemQuantity: jest.fn(),
+    removeFromCart: jest.fn(),
+    clearCart: jest.fn()
+  })
+}));
 
 const mockProduct = {
   id: 1,

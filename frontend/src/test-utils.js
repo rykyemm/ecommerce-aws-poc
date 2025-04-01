@@ -1,10 +1,13 @@
 import { render } from "@testing-library/react";
 import { BrowserRouter } from "react-router-dom";
+import { CartProvider } from "./context/CartContext";
 
 const AllTheProviders = ({ children }) => {
   return (
     <BrowserRouter>
-      {children}
+      <CartProvider>
+        {children}
+      </CartProvider>
     </BrowserRouter>
   );
 };
