@@ -1,19 +1,15 @@
-import { render, screen, waitFor } from '@testing-library/react';
+import { render, screen, waitFor } from '../test-utils';
 import ProductList from '../components/ProductList';
-import { BrowserRouter } from 'react-router-dom';
 
 test('renders product list', async () => {
-  render(
-    <BrowserRouter>
-      <ProductList />
-    </BrowserRouter>
-  );
+  render(<ProductList />);
   
   // Vérifie que le titre est présent
   expect(screen.getByText(/Produits/i)).toBeInTheDocument();
   
   // Attend que les produits soient chargés
   await waitFor(() => {
-    expect(screen.getByTestId('product-grid')).toBeInTheDocument();
+    expect(screen.getByText('iPhone 13')).toBeInTheDocument();
+    expect(screen.getByText('Samsung Galaxy S21')).toBeInTheDocument();
   });
 }); 

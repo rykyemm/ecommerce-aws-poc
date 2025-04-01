@@ -110,14 +110,51 @@ jobs:
         };
         
         // Configure testing-library
-        configure({ testIdAttribute: "data-testid" });' > src/setupTests.js
+        configure({ testIdAttribute: "data-testid" });
+        
+        // Mock window.matchMedia
+        Object.defineProperty(window, "matchMedia", {
+          writable: true,
+          value: jest.fn().mockImplementation(query => ({
+            matches: false,
+            media: query,
+            onchange: null,
+            addListener: jest.fn(),
+            removeListener: jest.fn(),
+            addEventListener: jest.fn(),
+            removeEventListener: jest.fn(),
+            dispatchEvent: jest.fn(),
+          })),
+        });' > src/setupTests.js
         
         # Create fileMock.js
         echo 'module.exports = "test-file-stub";' > __mocks__/fileMock.js
         
         # Create axios mock
         echo 'module.exports = {
-          get: jest.fn(() => Promise.resolve({ data: [] })),
+          get: jest.fn((url) => {
+            if (url === "/api/products") {
+              return Promise.resolve({
+                data: [
+                  {
+                    id: 1,
+                    name: "iPhone 13",
+                    price: 999.99,
+                    description: "Latest iPhone model",
+                    image_url: "iphone13.txt"
+                  },
+                  {
+                    id: 2,
+                    name: "Samsung Galaxy S21",
+                    price: 899.99,
+                    description: "Latest Samsung model",
+                    image_url: "samsung.txt"
+                  }
+                ]
+              });
+            }
+            return Promise.resolve({ data: [] });
+          }),
           post: jest.fn(() => Promise.resolve({ data: {} })),
           put: jest.fn(() => Promise.resolve({ data: {} })),
           delete: jest.fn(() => Promise.resolve({ data: {} }))
