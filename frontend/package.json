@@ -24,7 +24,8 @@
     "test:e2e": "cypress run",
     "test:e2e:open": "cypress open",
     "test:e2e:ci": "cypress run --record --key your-cypress-key",
-    "test:e2e:parallel": "cypress-parallel -s cy:run -t 4 -d cypress/e2e/**/*.cy.js"
+    "test:e2e:parallel": "cypress-split -q cy:run -t 4",
+    "test:e2e:parallel:ci": "cypress-split -q cy:run -t 4 --ci-build-id $CI_BUILD_ID --group products"
   },
   "eslintConfig": {
     "extends": [
@@ -49,6 +50,6 @@
     "@testing-library/react": "^14.0.0",
     "@testing-library/jest-dom": "^6.0.0",
     "cypress": "^13.0.0",
-    "cypress-parallel": "^0.4.0"
+    "cypress-split": "^1.0.0"
   }
 } 
