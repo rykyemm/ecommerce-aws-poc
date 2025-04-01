@@ -65,7 +65,10 @@ jobs:
         # Create babel.config.js
         echo 'module.exports = {
           presets: [
-            ["@babel/preset-env", {targets: {node: "current"}}],
+            ["@babel/preset-env", {
+              targets: {node: "current"},
+              modules: "auto"
+            }],
             ["@babel/preset-react", {runtime: "automatic"}]
           ]
         };' > babel.config.js
@@ -77,14 +80,48 @@ jobs:
             "\\.(css|less|scss|sass)$": "identity-obj-proxy",
             "\\.(jpg|jpeg|png|gif|eot|otf|webp|svg|ttf|woff|woff2|mp4|webm|wav|mp3|m4a|aac|oga)$": "<rootDir>/__mocks__/fileMock.js"
           },
-          setupFilesAfterEnv: ["<rootDir>/src/setupTests.js"]
+          setupFilesAfterEnv: ["<rootDir>/src/setupTests.js"],
+          transform: {
+            "^.+\\.(js|jsx|ts|tsx)$": "babel-jest",
+            "^.+\\.(js|jsx|ts|tsx)$": ["babel-jest", { configFile: "./babel.config.js" }]
+          },
+          transformIgnorePatterns: [
+            "/node_modules/(?!axios)/"
+          ],
+          testEnvironmentOptions: {
+            url: "http://localhost"
+          }
         };' > jest.config.js
         
         # Create setupTests.js
-        echo 'import "@testing-library/jest-dom";' > src/setupTests.js
+        echo 'import "@testing-library/jest-dom";
+        import { configure } from "@testing-library/react";
+        
+        // Suppress specific warnings
+        const originalError = console.error;
+        console.error = (...args) => {
+          if (
+            /Warning: ReactDOMTestUtils.act is deprecated/.test(args[0]) ||
+            /React Router Future Flag Warning/.test(args[0])
+          ) {
+            return;
+          }
+          originalError.call(console, ...args);
+        };
+        
+        // Configure testing-library
+        configure({ testIdAttribute: "data-testid" });' > src/setupTests.js
         
         # Create fileMock.js
         echo 'module.exports = "test-file-stub";' > __mocks__/fileMock.js
+        
+        # Create axios mock
+        echo 'module.exports = {
+          get: jest.fn(() => Promise.resolve({ data: [] })),
+          post: jest.fn(() => Promise.resolve({ data: {} })),
+          put: jest.fn(() => Promise.resolve({ data: {} })),
+          delete: jest.fn(() => Promise.resolve({ data: {} }))
+        };' > __mocks__/axios.js
         
     - name: Run Jest Tests
       run: |
