@@ -22,7 +22,7 @@
     "test:e2e:dev": "cypress open",
     "test:e2e:ci": "cypress run --record --key your-cypress-key",
     "test:e2e:parallel": "cypress-split -q cy:run -t 4",
-    "test:e2e:parallel:ci": "cypress-split -q cy:run -t 4 --ci-build-id $BUILD_ID"
+    "test:e2e:parallel:ci": "cypress-split -q cy:run -t 4 --ci-build-id local"
   },
   "eslintConfig": {
     "extends": [
