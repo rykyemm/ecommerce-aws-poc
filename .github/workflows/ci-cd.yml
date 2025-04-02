@@ -27,7 +27,25 @@ jobs:
       run: |
         cd frontend
         npm install --legacy-peer-deps
-        npm install --save-dev cypress@13.0.0 cypress-split@1.0.0 --legacy-peer-deps
+        npm install --save-dev cypress@13.0.0 --legacy-peer-deps
+        
+        # Create cypress.config.js
+        echo 'module.exports = {
+          e2e: {
+            baseUrl: "http://localhost:3000",
+            video: true,
+            screenshotOnRunFailure: true
+          }
+        }' > cypress.config.js
+        
+        # Create basic Cypress test structure
+        mkdir -p cypress/e2e
+        echo 'describe("Homepage", () => {
+          it("should load the homepage", () => {
+            cy.visit("/");
+            cy.get("h1").should("exist");
+          });
+        });' > cypress/e2e/home.cy.js
         
     - name: Install and configure ESLint
       run: |
