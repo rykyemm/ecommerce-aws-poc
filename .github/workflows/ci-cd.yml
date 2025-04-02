@@ -339,7 +339,7 @@ jobs:
         CI_BUILD_ID: ${{ github.run_id }}
       run: |
         cd frontend
-        npm run test:e2e:parallel:ci
+        npm run test:e2e:ci
         
     - name: Upload Cypress Results
       uses: actions/upload-artifact@v4
