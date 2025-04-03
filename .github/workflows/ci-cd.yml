@@ -396,7 +396,7 @@ jobs:
     - name: Run JMeter Tests
       run: |
         cd performance_tests
-        jmeter -n -t load_test.jmx -l results.jtl --reportatendoflogtests -o report || {
+        jmeter -n -t load_test.jmx -l results.jtl || {
           echo "JMeter test failed"
           cat results.jtl
           exit 1
