@@ -445,7 +445,7 @@ jobs:
     - name: Run JMeter Tests
       run: |
         cd performance_tests
-        /opt/jmeter/bin/jmeter -n -t load_test.jmx -l results.jtl -j jmeter.log -e -o report || {
+        /opt/jmeter/bin/jmeter -n -t load_test.jmx -l results.jtl -j jmeter.log -L DEBUG || {
           echo "JMeter test failed"
           cat jmeter.log
           cat results.jtl
@@ -460,7 +460,6 @@ jobs:
         path: |
           performance_tests/results.jtl
           performance_tests/jmeter.log
-          performance_tests/report
 
   package:
     name: Create Deployment Package
