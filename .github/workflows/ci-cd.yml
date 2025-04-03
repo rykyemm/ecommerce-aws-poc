@@ -355,6 +355,7 @@ jobs:
     - name: Run Cypress Tests
       env:
         CI_BUILD_ID: ${{ github.run_id }}
+        CYPRESS_RECORD_KEY: ${{ secrets.CYPRESS_RECORD_KEY }}
       run: |
         cd frontend
         npm run test:e2e:ci
