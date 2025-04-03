@@ -385,7 +385,7 @@ jobs:
       run: |
         sudo apt-get update
         sudo apt-get install -y wget
-        wget https://dlcdn.apache.org//jmeter/binaries/apache-jmeter-5.6.2.tgz
+        wget https://archive.apache.org/dist/jmeter/binaries/apache-jmeter-5.6.2.tgz
         tar -xzf apache-jmeter-5.6.2.tgz
         sudo mv apache-jmeter-5.6.2 /opt/jmeter
         echo 'export PATH=$PATH:/opt/jmeter/bin' >> $GITHUB_ENV
