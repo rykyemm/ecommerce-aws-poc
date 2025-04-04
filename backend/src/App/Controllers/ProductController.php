@@ -78,7 +78,7 @@ class ProductController {
      * API pour créer un produit
      */
     public function create($data) {
-        try {
+        try { 
             $stmt = $this->db->prepare("INSERT INTO products (name, description, price, stock_quantity, category_id) VALUES (?, ?, ?, ?, ?)");
             $stmt->execute([
                 $data['name'],
