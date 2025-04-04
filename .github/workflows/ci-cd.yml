@@ -445,7 +445,7 @@ jobs:
     - name: Run JMeter Tests
       run: |
         cd performance_tests
-        /opt/jmeter/bin/jmeter -n -t load_test.jmx -l results.jtl -j jmeter.log -L DEBUG || {
+        /opt/jmeter/bin/jmeter -n -t load_test.jmx -l results.jtl -j jmeter.log -L DEBUG -Djmeter.save.saveservice.output_format=xml -Djmeter.save.saveservice.response_data=true -Djmeter.save.saveservice.samplerData=true -Djmeter.save.saveservice.assertions=true -Djmeter.save.saveservice.bytes=true -Djmeter.save.saveservice.url=true -Djmeter.save.saveservice.filename=true -Djmeter.save.saveservice.hostname=true -Djmeter.save.saveservice.thread_counts=true -Djmeter.save.saveservice.sample_count=true -Djmeter.save.saveservice.idle_time=true -Djmeter.save.saveservice.connect_time=true || {
           echo "JMeter test failed"
           cat jmeter.log
           cat results.jtl
