@@ -1,0 +1,37 @@
+[
+  {
+    "Namespace": "aws:elasticbeanstalk:application:environment",
+    "OptionName": "ENVIRONMENT",
+    "Value": "production"
+  },
+  {
+    "Namespace": "aws:elasticbeanstalk:environment:proxy:staticfiles",
+    "OptionName": "/static",
+    "Value": "/var/www/html/frontend/build"
+  },
+  {
+    "Namespace": "aws:elasticbeanstalk:container:php:phpini",
+    "OptionName": "document_root",
+    "Value": "/backend"
+  },
+  {
+    "Namespace": "aws:elasticbeanstalk:application:environment",
+    "OptionName": "DB_HOST",
+    "Value": "your-rds-endpoint"
+  },
+  {
+    "Namespace": "aws:elasticbeanstalk:application:environment",
+    "OptionName": "DB_NAME",
+    "Value": "ecommerce"
+  },
+  {
+    "Namespace": "aws:elasticbeanstalk:application:environment",
+    "OptionName": "DB_USER",
+    "Value": "user"
+  },
+  {
+    "Namespace": "aws:elasticbeanstalk:application:environment",
+    "OptionName": "DB_PASSWORD",
+    "Value": "password"
+  }
+] 
