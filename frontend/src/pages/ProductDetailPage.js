@@ -78,9 +78,12 @@ const ProductDetailPage = () => {
           <Card>
             <Card.Img 
               variant="top" 
-              src={`/images/${product.image_url}` || 'https://via.placeholder.com/600x400'} 
+              src={`${process.env.PUBLIC_URL}/images/${product.image_url}`}
               alt={product.name} 
               className="img-fluid"
+              onError={(e) => {
+                e.target.src = `${process.env.PUBLIC_URL}/images/placeholder.jpg`;
+              }}
             />
           </Card>
         </Col>
@@ -104,30 +107,36 @@ const ProductDetailPage = () => {
           </div>
           
           {product.stock_quantity > 0 && (
-            <div className="d-flex align-items-center mb-4">
-              <div className="me-3">
-                <label htmlFor="quantity" className="form-label">Quantité</label>
-                <input 
-                  type="number" 
-                  id="quantity"
-                  className="form-control" 
-                  min="1" 
-                  max={product.stock_quantity}
-                  value={quantity}
-                  onChange={(e) => setQuantity(parseInt(e.target.value))}
-                />
+            <div className="mb-4">
+              <h5>Quantité</h5>
+              <div className="d-flex align-items-center">
+                <Button 
+                  variant="outline-secondary" 
+                  onClick={() => setQuantity(Math.max(1, quantity - 1))}
+                  className="me-2"
+                >
+                  -
+                </Button>
+                <span className="mx-2">{quantity}</span>
+                <Button 
+                  variant="outline-secondary" 
+                  onClick={() => setQuantity(Math.min(product.stock_quantity, quantity + 1))}
+                  className="ms-2"
+                >
+                  +
+                </Button>
               </div>
-              
-              <Button 
-                variant="primary" 
-                size="lg"
-                onClick={handleAddToCart}
-                disabled={product.stock_quantity < 1}
-              >
-                Ajouter au panier
-              </Button>
             </div>
           )}
+          
+          <Button 
+            variant="primary" 
+            size="lg" 
+            onClick={handleAddToCart}
+            disabled={product.stock_quantity < 1}
+          >
+            {product.stock_quantity < 1 ? 'Épuisé' : 'Ajouter au panier'}
+          </Button>
         </Col>
       </Row>
     </Container>

@@ -28,43 +28,43 @@ api.interceptors.request.use(
 const mockProducts = [
   {
     id: 1,
-    name: "iPhone 13",
-    description: "Smartphone Apple avec écran Super Retina XDR",
-    price: 999.99,
-    stock_quantity: 50,
-    category_id: 4,
-    category_name: "Smartphones",
-    image_url: "iphone13.jpg"
+    name: "Chaussures de Running Nike",
+    description: "Chaussures de running légères et confortables",
+    price: 129.99,
+    stock_quantity: 30,
+    category_id: 1,
+    category_name: "Chaussures de Sport",
+    image_url: "sport-shoes.jpg"
   },
   {
     id: 2,
-    name: "Samsung Galaxy S21",
-    description: "Smartphone Samsung avec écran Dynamic AMOLED",
-    price: 799.99,
-    stock_quantity: 75,
-    category_id: 4,
-    category_name: "Smartphones",
-    image_url: "galaxys21.jpg"
+    name: "Veste de Sport Adidas",
+    description: "Veste respirante pour les activités sportives",
+    price: 79.99,
+    stock_quantity: 40,
+    category_id: 2,
+    category_name: "Vêtements de Sport",
+    image_url: "sport-clothing.jpg"
   },
   {
     id: 3,
-    name: "MacBook Pro",
-    description: "Ordinateur portable Apple avec puce M1",
-    price: 1299.99,
-    stock_quantity: 30,
-    category_id: 5,
-    category_name: "Ordinateurs",
-    image_url: "macbookpro.jpg"
+    name: "Haltères Fitness",
+    description: "Set d'haltères ajustables pour l'entraînement",
+    price: 89.99,
+    stock_quantity: 20,
+    category_id: 3,
+    category_name: "Équipement de Fitness",
+    image_url: "fitness-equipment.jpg"
   },
   {
     id: 4,
-    name: "Dell XPS 15",
-    description: "Ordinateur portable Dell avec écran InfinityEdge",
-    price: 1199.99,
-    stock_quantity: 25,
-    category_id: 5,
-    category_name: "Ordinateurs",
-    image_url: "dellxps15.jpg"
+    name: "Ballon de Football",
+    description: "Ballon de football officiel taille 5",
+    price: 29.99,
+    stock_quantity: 50,
+    category_id: 4,
+    category_name: "Sports Collectifs",
+    image_url: "team-sports.jpg"
   }
 ];
 
@@ -98,65 +98,53 @@ const mockAPI = {
     await simulateDelay();
     return { data: { message: 'Produit créé avec succès', id: Date.now() } };
   },
-  updateProduct: async (_id, _data) => {
+  updateProduct: async (id, data) => {
     await simulateDelay();
+    const index = mockProducts.findIndex(p => p.id === parseInt(id));
+    if (index === -1) {
+      throw new Error('Produit non trouvé');
+    }
+    mockProducts[index] = { ...mockProducts[index], ...data };
     return { data: { message: 'Produit mis à jour avec succès' } };
   },
-  deleteProduct: async (_id) => {
+  deleteProduct: async (id) => {
     await simulateDelay();
+    const index = mockProducts.findIndex(p => p.id === parseInt(id));
+    if (index === -1) {
+      throw new Error('Produit non trouvé');
+    }
+    mockProducts.splice(index, 1);
     return { data: { message: 'Produit supprimé avec succès' } };
   },
 
-  // Utilisateurs
-  login: async (credentials) => {
+  // Catégories
+  getCategories: async () => {
     await simulateDelay();
-    return {
-      data: {
-        token: 'fake-jwt-token',
-        user: {
-          id: 1,
-          email: credentials.email,
-          first_name: 'John',
-          last_name: 'Doe',
-          role: 'customer'
-        }
-      }
-    };
+    const categories = [
+      { id: 1, name: "Chaussures de Sport" },
+      { id: 2, name: "Vêtements de Sport" },
+      { id: 3, name: "Équipement de Fitness" },
+      { id: 4, name: "Sports Collectifs" }
+    ];
+    return { data: { records: categories } };
   },
-  register: async (userData) => {
+  getCategory: async (id) => {
     await simulateDelay();
-    return {
-      data: {
-        token: 'fake-jwt-token',
-        user: {
-          id: Date.now(),
-          email: userData.email,
-          first_name: userData.firstName,
-          last_name: userData.lastName,
-          role: 'customer'
-        }
-      }
-    };
-  },
-  getUserProfile: async () => {
-    await simulateDelay();
-    return {
-      data: {
-        id: 1,
-        email: 'user@example.com',
-        first_name: 'John',
-        last_name: 'Doe',
-        role: 'customer'
-      }
-    };
-  },
-  updateUserProfile: async (_data) => {
-    await simulateDelay();
-    return { data: { message: 'Profil mis à jour avec succès' } };
+    const categories = [
+      { id: 1, name: "Chaussures de Sport" },
+      { id: 2, name: "Vêtements de Sport" },
+      { id: 3, name: "Équipement de Fitness" },
+      { id: 4, name: "Sports Collectifs" }
+    ];
+    const category = categories.find(c => c.id === parseInt(id));
+    if (!category) {
+      throw new Error('Catégorie non trouvée');
+    }
+    return { data: category };
   },
 
   // Commandes
-  createOrder: async (_orderData) => {
+  createOrder: async (data) => {
     await simulateDelay();
     return { data: { message: 'Commande créée avec succès', id: Date.now() } };
   },
@@ -166,31 +154,53 @@ const mockAPI = {
   },
   getOrder: async (id) => {
     await simulateDelay();
-    return { data: { id, status: 'pending', total_price: 0, created_at: new Date().toISOString() } };
+    return { data: { id, status: 'En cours de traitement' } };
+  },
+
+  // Authentification
+  login: async (credentials) => {
+    await simulateDelay();
+    if (credentials.email === 'admin@example.com' && credentials.password === 'password') {
+      return { data: { token: 'mock-token', user: { id: 1, email: 'admin@example.com', role: 'admin' } } };
+    }
+    throw new Error('Identifiants invalides');
+  },
+  register: async (data) => {
+    await simulateDelay();
+    return { data: { message: 'Inscription réussie', id: Date.now() } };
+  },
+  getProfile: async () => {
+    await simulateDelay();
+    return { data: { id: 1, email: 'admin@example.com', role: 'admin' } };
+  },
+  updateProfile: async (data) => {
+    await simulateDelay();
+    return { data: { message: 'Profil mis à jour avec succès' } };
   }
 };
 
-// Use mock API in development mode
-const isDevelopment = true; // Force to use mock API
-
-// Exporter l'API réelle ou l'API mock selon l'environnement
-export default isDevelopment ? mockAPI : {
+// Export des fonctions API
+export default {
   // Produits
-  getProducts: () => api.get('/product'),
-  getProduct: (id) => api.get(`/product/${id}`),
-  createProduct: (data) => api.post('/product', data),
-  updateProduct: (id, data) => api.put(`/product/${id}`, data),
-  deleteProduct: (id) => api.delete(`/product/${id}`),
-  searchProducts: (keywords) => api.get(`/product/search/${keywords}`),
+  getProducts: () => mockAPI.getProducts(),
+  getProduct: (id) => mockAPI.getProduct(id),
+  searchProducts: (keywords) => mockAPI.searchProducts(keywords),
+  createProduct: (data) => mockAPI.createProduct(data),
+  updateProduct: (id, data) => mockAPI.updateProduct(id, data),
+  deleteProduct: (id) => mockAPI.deleteProduct(id),
 
-  // Utilisateurs
-  login: (credentials) => api.post('/user/login', credentials),
-  register: (userData) => api.post('/user/register', userData),
-  getUserProfile: () => api.get('/user/profile'),
-  updateUserProfile: (data) => api.put('/user/profile', data),
+  // Catégories
+  getCategories: () => mockAPI.getCategories(),
+  getCategory: (id) => mockAPI.getCategory(id),
 
   // Commandes
-  createOrder: (orderData) => api.post('/order', orderData),
-  getOrders: () => api.get('/order'),
-  getOrder: (id) => api.get(`/order/${id}`),
+  createOrder: (data) => mockAPI.createOrder(data),
+  getOrders: () => mockAPI.getOrders(),
+  getOrder: (id) => mockAPI.getOrder(id),
+
+  // Authentification
+  login: (credentials) => mockAPI.login(credentials),
+  register: (data) => mockAPI.register(data),
+  getProfile: () => mockAPI.getProfile(),
+  updateProfile: (data) => mockAPI.updateProfile(data)
 }; 

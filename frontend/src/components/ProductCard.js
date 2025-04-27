@@ -15,9 +15,12 @@ const ProductCard = ({ product }) => {
       <Link to={`/products/${product.id}`}>
         <Card.Img 
           variant="top" 
-          src={`/images/${product.image_url}` || 'https://via.placeholder.com/300x200'} 
+          src={`${process.env.PUBLIC_URL}/images/${product.image_url}`} 
           alt={product.name}
           className="product-image"
+          onError={(e) => {
+            e.target.src = `${process.env.PUBLIC_URL}/images/placeholder.jpg`;
+          }}
         />
       </Link>
       <Card.Body className="d-flex flex-column">

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Container, Form, InputGroup, Button, Row, Col } from 'react-bootstrap';
-import api from '../services/api';
 import ProductList from '../components/ProductList';
+import api from '../services/api';
 
 const ProductsPage = () => {
   const [products, setProducts] = useState([]);
