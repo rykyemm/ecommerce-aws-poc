@@ -510,7 +510,7 @@ jobs:
         
     - name: Initialize EB application
       run: |
-        eb init poc-bloc3 --region eu-west-3 --platform "PHP 8.2 on 64bit Amazon Linux 2"
+        eb init poc-bloc3 --region eu-west-3 --platform "PHP 8.2 running on 64bit Amazon Linux 2023"
         
     - name: Create application version
       run: |
