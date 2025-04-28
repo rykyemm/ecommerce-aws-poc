@@ -11,14 +11,14 @@ Pour que le workflow CI/CD fonctionne correctement, vous devez configurer les se
 
 ## Secrets Requis
 
-### AWS Credentials
+### AWS Credentials 
 
-| Secret Name | Description | Exemple |
-|-------------|-------------|---------|
-| `AWS_ACCESS_KEY_ID` | Clé d'accès AWS IAM | `AKIAIOSFODNN7EXAMPLE` |
-| `AWS_SECRET_ACCESS_KEY` | Clé secrète AWS IAM | `wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY` |
-| `AWS_REGION` | Région AWS où se trouvent vos ressources | `us-east-1` |
-| `AWS_S3_BUCKET` | Nom du bucket S3 pour le déploiement | `my-deployment-bucket` |
+| Secret Name               | Description                                | Exemple                                      |
+| ------------------------- | ------------------------------------------ | -------------------------------------------- |
+| `AWS_ACCESS_KEY_ID`     | Clé d'accès AWS IAM                      | `AKIAIOSFODNN7EXAMPLE`                     |
+| `AWS_SECRET_ACCESS_KEY` | Clé secrète AWS IAM                      | `wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY` |
+| `AWS_REGION`            | Région AWS où se trouvent vos ressources | `us-east-1`                                |
+| `AWS_S3_BUCKET`         | Nom du bucket S3 pour le déploiement      | `my-deployment-bucket`                     |
 
 ## Création des Ressources AWS Nécessaires
 
@@ -66,4 +66,4 @@ Après avoir configuré tous les secrets, vous pouvez déclencher manuellement l
 2. Sélectionnez le workflow "CI/CD Pipeline for E-commerce POC"
 3. Cliquez sur **Run workflow** > **Run workflow**
 
-Si tout est correctement configuré, vous devriez voir le package de déploiement dans votre bucket S3 après l'exécution du workflow. 
+Si tout est correctement configuré, vous devriez voir le package de déploiement dans votre bucket S3 après l'exécution du workflow.
